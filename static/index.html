@@ -1,0 +1,36 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>WB</title>
+</head>
+
+<body>
+<h2>Enter order ID:</h2>
+<form id="form" method="get">
+    <input type="text" name="order" id="url-input">
+    <button type="submit">Find</button>
+</form>
+<div id="orderInfo"></div>
+
+<script>
+    const form = document.getElementById('form');
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const inputValue = document.querySelector('#url-input').value;
+        try {
+            const response = await fetch(`http://localhost:8080/api/orders/uid/${inputValue}`);
+            const data = await response.json();
+            console.log(data)
+            const orderInfoElement = document.getElementById('orderInfo');
+            orderInfoElement.innerHTML = JSON.stringify(data, null, 2); ;
+        } catch (error) {
+            console.error('Ошибка при отправке запроса:', error);
+        }
+    })
+</script>
+
+</body>
+
+</html>

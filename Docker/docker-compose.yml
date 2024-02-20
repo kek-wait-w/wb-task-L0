@@ -1,0 +1,59 @@
+version: '3.9'
+
+volumes:
+  postgres_data:
+
+networks:
+  local_area:
+    driver: bridge
+
+services:
+
+  postgres:
+    image: postgres:15.3-alpine
+    container_name: postgres
+    restart: always
+    networks:
+      local_area:
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: wb-task
+    ports:
+      - 5433:5432
+
+  post_data:
+    build:
+      context: ../
+      dockerfile: post_data/Dockerfile
+    networks:
+      local_area:
+    container_name: post_data
+    depends_on:
+      postgres:
+        condition: service_started
+    restart: on-failure
+
+  wb-l0:
+    container_name: task-l0
+    build:
+      context: ../
+      dockerfile: cmd/Dockerfile
+    networks:
+      - local_area
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+      - 4222:4222
+
+  nats-streaming:
+    image: nats-streaming:0.21.2
+    container_name: nats-streaming
+    networks:
+      - local_area
+    ports:
+      - "5222:4222"
+      - "8222:8222"
